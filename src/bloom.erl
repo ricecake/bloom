@@ -46,7 +46,8 @@ lcg_hash(Width, Data) -> lcg_hash(Width, Data, <<>>).
 lcg_hash(Width, Data, Taint) when Width rem 32 == 0 ->
 	BinaryData   = erlang:term_to_binary(Data),
 	BinaryTaint  = erlang:term_to_binary(Taint),
-	InitialState = erlang:crc32(<<BinaryTaint/binary, BinaryData/binary>>),
+        HashTaint = erlang:adler32(<<BinaryTaint/binary, BinaryData/binary>>),
+	InitialState = erlang:crc32(<<HashTaint/binary, BinaryData/binary>>),
 	do_lcg_hash(InitialState, <<InitialState:32>>, Width-32).
 
 do_lcg_hash(_State, Acc, 0) -> Acc;
