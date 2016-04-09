@@ -2,7 +2,8 @@
 
 %% API exports
 -export([
-	new/1,
+	new/2,
+	new_manual/2,
 	add/2,
 	exists/2,
 	optimal_params/2,
@@ -14,23 +15,32 @@
 %% API functions
 %%====================================================================
 
-new(Width) when Width rem 32 == 0 ->
-	{bloom_state, <<0:Width>>, Width}.
+new(Elements, Odds) ->
+	{ok, {Width, Hashes}} = optimal_params(Elements, Odds),
+	new_manual(Width, Hashes).
+
+new_manual(Width, Rounds) when Width rem 32 == 0 ->
+	{bloom_state, <<0:Width>>, Width, Rounds}.
 
 optimal_params(Elements, Odds) ->
 	Probability = math:pow(Odds, -1),
-	%% -1/( ln(2)^2 )
+	%%                                v -1/( ln(2)^2 )
 	Width = nearest_block_size(-2.0813689810056077 * ( Elements * math:log(Probability))),
 	Hashes = round((Width/Elements) * math:log(2)),
 	{ok, {Width, Hashes}}.
 
-add({bloom_state, State, Width}, Data) ->
-	HashValue = lcg_hash(Width, Data),
-	{bloom_state, do_add(State, HashValue, <<>>), Width}.
+add({bloom_state, State, Width, Rounds}, Data) ->
+	NewState = lists:foldl(fun(El, Acc) ->
+		HashValue = lcg_hash(Width, Data, El),
+		do_add(Acc, HashValue, <<>>)
+	end, State, lists:seq(1, Rounds)),
+	{bloom_state, NewState, Width, Rounds}.
 
-exists({bloom_state, State, Width}, Data) ->
-	HashValue = lcg_hash(Width, Data),
-	do_exists(State, HashValue).
+exists({bloom_state, State, Width, Rounds}, Data) ->
+	lists:all(fun(El) ->
+		HashValue = lcg_hash(Width, Data, El),
+		do_exists(State, HashValue)
+	end, lists:seq(1, Rounds)).
 
 
 %%====================================================================
@@ -60,7 +70,7 @@ lcg_hash(Width, Data, Taint) when Width rem 32 == 0 ->
 
 do_lcg_hash(_State, Acc, 0) -> Acc;
 do_lcg_hash(State, Acc, Width) ->
-	NewState = (214013 * State + 2531011),
+	<< NewState:32 >> = << (214013 * State + 2531011):32 >>,
 	do_lcg_hash(NewState, <<Acc/binary, NewState:32>>, Width-32).
 
 nearest_block_size(Length) when is_float(Length) -> nearest_block_size(trunc(Length));
