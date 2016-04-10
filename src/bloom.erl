@@ -31,15 +31,15 @@ optimal_params(Elements, Odds) ->
 
 add({bloom_state, State, Width, Rounds}, Data) ->
 	NewState = lists:foldl(fun(El, Acc) ->
-		HashValue = lcg_hash(Width, Data, El),
-		do_add(Acc, HashValue, <<>>)
+		HashValue = hash_bit(Width, Data, El),
+		setBit(Acc, HashValue)
 	end, State, lists:seq(1, Rounds)),
 	{bloom_state, NewState, Width, Rounds}.
 
 exists({bloom_state, State, Width, Rounds}, Data) ->
 	lists:all(fun(El) ->
-		HashValue = lcg_hash(Width, Data, El),
-		do_exists(State, HashValue)
+		HashValue = hash_bit(Width, Data, El),
+		getBit(State, HashValue)
 	end, lists:seq(1, Rounds)).
 
 
