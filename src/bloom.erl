@@ -6,9 +6,7 @@
 	new_manual/2,
 	add/2,
 	exists/2,
-	optimal_params/2,
-	lcg_hash/2,
-	lcg_hash/3
+	optimal_params/2
 ]).
 
 %%====================================================================
@@ -47,31 +45,34 @@ exists({bloom_state, State, Width, Rounds}, Data) ->
 %% Internal functions
 %%====================================================================
 
-do_exists(<<>>, <<>>) -> true;
-do_exists(<<SByte:32, SRest/binary>>, <<DByte:32, DRest/binary>>) when DByte == SByte band DByte ->
-	do_exists(SRest, DRest);
-do_exists(_,_) -> false.
+% can be converted into do_intersection
+%%do_exists(<<>>, <<>>) -> true;
+%%do_exists(<<SByte:32, SRest/binary>>, <<DByte:32, DRest/binary>>) when DByte == SByte band DByte ->
+%%	do_exists(SRest, DRest);
+%%do_exists(_,_) -> false.
 
-do_add(<<>>, <<>>, Result) -> Result;
-do_add(<< StateByte:32, StateRest/binary>>, << DataByte:32, DataRest/binary>>, Accumulator) ->
-	NewAccByte = StateByte bor DataByte,
-	do_add(StateRest, DataRest, <<Accumulator/binary, NewAccByte:32>>).
+% can be converted into do_union
+%%do_add(<<>>, <<>>, Result) -> Result;
+%%do_add(<< StateByte:32, StateRest/binary>>, << DataByte:32, DataRest/binary>>, Accumulator) ->
+%%	NewAccByte = StateByte bor DataByte,
+%%	do_add(StateRest, DataRest, <<Accumulator/binary, NewAccByte:32>>).
 
-lcg_hash(Width, Data) -> lcg_hash(Width, Data, <<>>).
-
-%% m = 2^32, a = 214013, c = 2531011
-%% X_n+1 = (a*X_n+c) mod m
-lcg_hash(Width, Data, Taint) when Width rem 32 == 0 ->
-	BinaryData   = erlang:term_to_binary(Data),
-	BinaryTaint  = erlang:term_to_binary(Taint),
-	HashTaint    = erlang:adler32(<<BinaryTaint/binary, BinaryData/binary>>),
-	InitialState = erlang:crc32(<<HashTaint:32, BinaryData/binary>>),
-	do_lcg_hash(InitialState, <<InitialState:32>>, Width-32).
-
-do_lcg_hash(_State, Acc, 0) -> Acc;
-do_lcg_hash(State, Acc, Width) ->
-	<< NewState:32 >> = << (214013 * State + 2531011):32 >>,
-	do_lcg_hash(NewState, <<Acc/binary, NewState:32>>, Width-32).
+% Find a place to stash these.
+%lcg_hash(Width, Data) -> lcg_hash(Width, Data, <<>>).
+%
+%%% m = 2^32, a = 214013, c = 2531011
+%%% X_n+1 = (a*X_n+c) mod m
+%lcg_hash(Width, Data, Taint) when Width rem 32 == 0 ->
+%	BinaryData   = erlang:term_to_binary(Data),
+%	BinaryTaint  = erlang:term_to_binary(Taint),
+%	HashTaint    = erlang:adler32(<<BinaryTaint/binary, BinaryData/binary>>),
+%	InitialState = erlang:crc32(<<HashTaint:32, BinaryData/binary>>),
+%	do_lcg_hash(InitialState, <<InitialState:32>>, Width-32).
+%
+%do_lcg_hash(_State, Acc, 0) -> Acc;
+%do_lcg_hash(State, Acc, Width) ->
+%	<< NewState:32 >> = << (214013 * State + 2531011):32 >>,
+%	do_lcg_hash(NewState, <<Acc/binary, NewState:32>>, Width-32).
 
 nearest_block_size(Length) when is_float(Length) -> nearest_block_size(trunc(Length));
 nearest_block_size(Length) when Length rem 32 == 0 -> Length;
