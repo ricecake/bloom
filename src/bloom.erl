@@ -86,3 +86,9 @@ getBit(Bin, N)->
 setBit(Bin, N)->
     <<A:N/bits,_:1,B/bits>> = Bin,
     <<A:N/bits,1:1,B/bits>>.
+
+hash_bit(Width, Data, Taint) when Width rem 32 == 0 ->
+	BinaryData   = erlang:term_to_binary(Data),
+	BinaryTaint  = erlang:term_to_binary(Taint),
+	HashTaint    = erlang:adler32(<<BinaryTaint/binary, BinaryData/binary>>),
+	erlang:crc32(<<HashTaint:32, BinaryData/binary>>) rem Width.
