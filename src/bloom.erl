@@ -76,3 +76,13 @@ do_lcg_hash(State, Acc, Width) ->
 nearest_block_size(Length) when is_float(Length) -> nearest_block_size(trunc(Length));
 nearest_block_size(Length) when Length rem 32 == 0 -> Length;
 nearest_block_size(Length) -> (Length + 32) - (Length rem 32).
+
+getBit(Bin, N)->
+	case Bin of
+		<<_:N/bits, 0:1, _/bits>> -> false;
+		<<_:N/bits, 1:1, _/bits>> -> true
+	end.
+
+setBit(Bin, N)->
+    <<A:N/bits,_:1,B/bits>> = Bin,
+    <<A:N/bits,1:1,B/bits>>.
