@@ -29,14 +29,14 @@ optimal_params(Elements, Odds) ->
 
 add({bloom_state, State, Width, Rounds}, Data) ->
 	NewState = lists:foldl(fun(El, Acc) ->
-		HashValue = hash_bit(Width, Data, El),
+		HashValue = hash_bit(Width, Data, <<El>>),
 		setBit(Acc, HashValue)
 	end, State, lists:seq(1, Rounds)),
 	{bloom_state, NewState, Width, Rounds}.
 
 exists({bloom_state, State, Width, Rounds}, Data) ->
 	lists:all(fun(El) ->
-		HashValue = hash_bit(Width, Data, El),
+		HashValue = hash_bit(Width, Data, <<El>>),
 		getBit(State, HashValue)
 	end, lists:seq(1, Rounds)).
 
@@ -90,8 +90,11 @@ setBit(Bin, N)->
 		<<A:N/bits,0:1,B/bits>> -> <<A:N/bits,1:1,B/bits>>
 	end.
 
-hash_bit(Width, Data, Taint) when Width rem 32 == 0 ->
+hash_bit(Width, Data, Taint) when is_binary(Data) ->
+	do_hash(Width, <<Data/binary, Taint/binary>>);
+hash_bit(Width, Data, Taint) ->
 	BinaryData   = erlang:term_to_binary(Data),
-	BinaryTaint  = erlang:term_to_binary(Taint),
-	HashTaint    = erlang:adler32(<<BinaryTaint/binary, BinaryData/binary>>),
-	erlang:crc32(<<HashTaint:32, BinaryData/binary>>) rem Width.
+	do_hash(Width, <<BinaryData/binary, Taint/binary>>).
+
+do_hash(Width, Data) ->
+	erlang:crc32(Data) rem Width.
