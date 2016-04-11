@@ -85,8 +85,10 @@ getBit(Bin, N)->
 	end.
 
 setBit(Bin, N)->
-    <<A:N/bits,_:1,B/bits>> = Bin,
-    <<A:N/bits,1:1,B/bits>>.
+	case Bin of
+		<<_:N/bits,1:1,_/bits>> -> Bin;
+		<<A:N/bits,0:1,B/bits>> -> <<A:N/bits,1:1,B/bits>>
+	end.
 
 hash_bit(Width, Data, Taint) when Width rem 32 == 0 ->
 	BinaryData   = erlang:term_to_binary(Data),
