@@ -27,18 +27,23 @@ optimal_params(Elements, Odds) ->
 	Hashes = round((Width/Elements) * math:log(2)),
 	{ok, {Width, Hashes}}.
 
-add({bloom_state, State, Width, Rounds}, Data) ->
+add({bloom_state, State, Width, Rounds}, Data) when is_binary(Data) ->
 	NewState = lists:foldl(fun(El, Acc) ->
 		HashValue = hash_bit(Width, Data, <<El>>),
 		setBit(Acc, HashValue)
 	end, State, lists:seq(1, Rounds)),
-	{bloom_state, NewState, Width, Rounds}.
+	{bloom_state, NewState, Width, Rounds};
+add(State, Data) when not is_binary(Data) ->
+	add(State, term_to_binary(Data)).
+
 
 exists({bloom_state, State, Width, Rounds}, Data) ->
 	lists:all(fun(El) ->
 		HashValue = hash_bit(Width, Data, <<El>>),
 		getBit(State, HashValue)
-	end, lists:seq(1, Rounds)).
+	end, lists:seq(1, Rounds));
+exists(State, Data) when not is_binary(Data) ->
+	exists(State, term_to_binary(Data)).
 
 
 %%====================================================================
@@ -90,11 +95,5 @@ setBit(Bin, N)->
 		<<A:N/bits,0:1,B/bits>> -> <<A:N/bits,1:1,B/bits>>
 	end.
 
-hash_bit(Width, Data, Taint) when is_binary(Data) ->
-	do_hash(Width, <<Data/binary, Taint/binary>>);
 hash_bit(Width, Data, Taint) ->
-	BinaryData   = erlang:term_to_binary(Data),
-	do_hash(Width, <<BinaryData/binary, Taint/binary>>).
-
-do_hash(Width, Data) ->
-	erlang:crc32(Data) rem Width.
+	erlang:crc32(<<Data/binary, Taint/binary>>) rem Width.
