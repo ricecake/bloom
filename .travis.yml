@@ -1,0 +1,10 @@
+sudo:     false
+language: erlang
+install:  "true" # don't let travis run get-deps
+script:   "./rebar3 as test, do dialyzer, eunit"
+otp_release:
+    - 18.2
+cache:
+  directories:
+  - _build
+  - .cache/rebar3
