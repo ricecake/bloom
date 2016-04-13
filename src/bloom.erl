@@ -35,10 +35,7 @@ optimal_params(Elements, Odds) ->
 	{ok, {Width, Hashes}}.
 
 add({bloom_state, State, Width, Rounds}, Data) when is_binary(Data) ->
-	NewState = lists:foldl(fun(El, Acc) ->
-		HashValue = hash_bit(Width, Data, <<El>>),
-		setBit(Acc, HashValue)
-	end, State, lists:seq(1, Rounds)),
+	NewState = do_add(State, Data, Width, Rounds),
 	{bloom_state, NewState, Width, Rounds};
 add(State, Data) when not is_binary(Data) ->
 	add(State, term_to_binary(Data)).
@@ -56,6 +53,15 @@ exists(State, Data) when not is_binary(Data) ->
 %%====================================================================
 %% Internal functions
 %%====================================================================
+
+do_add(State, Data, Width, 1) ->
+	HashValue = hash_bit(Width, Data, <<1>>),
+	setBit(State, HashValue);
+do_add(State, Data, Width, N) ->
+	HashValue = hash_bit(Width, Data, <<N>>),
+	NewState  = setBit(State, HashValue),
+	do_add(NewState, Data, Width, N-1).
+
 
 nearest_block_size(Length) when is_float(Length) -> nearest_block_size(trunc(Length));
 nearest_block_size(Length) when Length rem 32 == 0 -> Length;
