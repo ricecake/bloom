@@ -6,7 +6,10 @@
 	new_manual/2,
 	add/2,
 	exists/2,
-	optimal_params/2
+	optimal_params/2,
+	setBits/2,
+	checkBits/2,
+	compute_deltas/3
 ]).
 
 -ifdef(TEST).
@@ -81,3 +84,21 @@ setBit(Bin, N)->
 
 hash_bit(Width, Data, Taint) ->
 	erlang:crc32(<<Data/binary, Taint/binary>>) rem Width.
+
+compute_deltas(_Offset, [], Acc) -> lists:reverse(Acc);
+compute_deltas(Offset, [Item |Rest], Acc) ->
+	compute_deltas(Item, Rest, [Item - Offset | Acc]).
+
+setBits(Bin, []) -> Bin;
+setBits(Bin, [Offset |Rest]) ->
+	case Bin of
+		<<_:Offset/bits,1:1,_/bits>> -> setBits(Bin, Rest);
+		<<A:Offset/bits,0:1,B/bits>> -> <<A/bits, 1:1, (setBits(B, [ N - (Offset+1) || N <- Rest]))/bits>>
+	end.
+
+checkBits(_Bin, []) -> true;
+checkBits(Bin, [Offset |Rest]) ->
+	case Bin of
+		<<_:Offset/bits, 0:1, _/bits>> -> false;
+		<<_:Offset/bits, 1:1, B/bits>> -> checkBits(B, Rest)
+	end.
