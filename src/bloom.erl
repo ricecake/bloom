@@ -87,7 +87,7 @@ hash_bit(Width, Data, Taint) ->
 
 hash_bits(Width, Data, Taints) ->
 	MainHash = erlang:crc32(Data),
-	[erlang:crc32(MainHash, Taint) rem Width || Taint <- Taints].
+	[erlang:crc32(MainHash, <<Taint>>) rem Width || Taint <- Taints].
 
 compute_deltas(_Offset, [], Acc) -> lists:reverse(Acc);
 compute_deltas(Offset, [Item |Rest], Acc) ->
