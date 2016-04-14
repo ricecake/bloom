@@ -38,6 +38,7 @@ optimal_params(Elements, Odds) ->
 	{ok, {Width, Hashes}}.
 
 add({bloom_state, State, Width, Rounds}, Data) when is_binary(Data) ->
+	%NewState = setBits(State, compute_deltas(lists:sort(hash_bits(Width, Data, lists:seq(1, Rounds)))),
 	NewState = do_add(State, Data, Width, Rounds),
 	{bloom_state, NewState, Width, Rounds};
 add(State, Data) when not is_binary(Data) ->
@@ -45,10 +46,9 @@ add(State, Data) when not is_binary(Data) ->
 
 
 exists({bloom_state, State, Width, Rounds}, Data) ->
-	lists:all(fun(El) ->
-		HashValue = hash_bit(Width, Data, <<El>>),
+	lists:all(fun(HashValue) ->
 		getBit(State, HashValue)
-	end, lists:seq(1, Rounds));
+	end, hash_bits(Width, Data, lists:seq(1, Rounds)));
 exists(State, Data) when not is_binary(Data) ->
 	exists(State, term_to_binary(Data)).
 
@@ -84,6 +84,10 @@ setBit(Bin, N)->
 
 hash_bit(Width, Data, Taint) ->
 	erlang:crc32(<<Data/binary, Taint/binary>>) rem Width.
+
+hash_bits(Width, Data, Taints) ->
+	MainHash = erlang:crc32(Data),
+	[erlang:crc32(MainHash, Taint) rem Width || Taint <- Taints].
 
 compute_deltas(_Offset, [], Acc) -> lists:reverse(Acc);
 compute_deltas(Offset, [Item |Rest], Acc) ->
