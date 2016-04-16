@@ -55,7 +55,6 @@ exists(State, Data) when not is_binary(Data) ->
 %% Internal functions
 %%====================================================================
 
-
 nearest_block_size(Length) when is_float(Length) -> nearest_block_size(trunc(Length));
 nearest_block_size(Length) when Length rem 32 == 0 -> Length;
 nearest_block_size(Length) -> (Length + 32) - (Length rem 32).
