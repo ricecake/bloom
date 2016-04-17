@@ -11,6 +11,8 @@
 	getBit/2
 ]).
 
+-define(BLOCK, 32).
+
 -ifdef(TEST).
 
 -include_lib("eunit/include/eunit.hrl").
@@ -26,7 +28,7 @@ new(Elements, Odds) ->
 	{ok, {Width, Hashes}} = optimal_params(Elements, Odds),
 	new_manual(Width, Hashes).
 
-new_manual(Width, Rounds) when Width rem 32 == 0 ->
+new_manual(Width, Rounds) when Width rem ?BLOCK == 0 ->
 	{bloom_state, <<0:Width>>, Width, Rounds}.
 
 optimal_params(Elements, Odds) ->
@@ -56,8 +58,8 @@ exists(State, Data) when not is_binary(Data) ->
 %%====================================================================
 
 nearest_block_size(Length) when is_float(Length) -> nearest_block_size(trunc(Length));
-nearest_block_size(Length) when Length rem 32 == 0 -> Length;
-nearest_block_size(Length) -> (Length + 32) - (Length rem 32).
+nearest_block_size(Length) when Length rem ?BLOCK == 0 -> Length;
+nearest_block_size(Length) -> (Length + ?BLOCK) - (Length rem ?BLOCK).
 
 getBit(Bin, N)->
 	case Bin of
