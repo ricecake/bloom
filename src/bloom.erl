@@ -12,6 +12,7 @@
 ]).
 
 -define(BLOCK, 32).
+-record(bloom_state, {state :: binary(), width :: pos_integer(), rounds :: pos_integer()}).
 
 -ifdef(TEST).
 
@@ -29,7 +30,7 @@ new(Elements, Odds) ->
 	new_manual(Width, Hashes).
 
 new_manual(Width, Rounds) when Width rem ?BLOCK == 0 ->
-	{bloom_state, <<0:Width>>, Width, Rounds}.
+	#bloom_state{ state= <<0:Width>>, width=Width, rounds=Rounds}.
 
 optimal_params(Elements, Odds) ->
 	Probability = math:pow(Odds, -1),
@@ -38,14 +39,14 @@ optimal_params(Elements, Odds) ->
 	Hashes = round((Width/Elements) * math:log(2)),
 	{ok, {Width, Hashes}}.
 
-add({bloom_state, State, Width, Rounds}, Data) when is_binary(Data) ->
+add(#bloom_state{ state=State, width=Width, rounds=Rounds} = Bloom, Data) when is_binary(Data) ->
 	NewState = setBits(State, hash_bits(Width, Data, lists:seq(1, Rounds))),
-	{bloom_state, NewState, Width, Rounds};
+	Bloom#bloom_state{ state=NewState };
 add(State, Data) when not is_binary(Data) ->
 	add(State, term_to_binary(Data)).
 
 
-exists({bloom_state, State, Width, Rounds}, Data) when is_binary(Data) ->
+exists(#bloom_state{ state=State, width=Width, rounds=Rounds}, Data) when is_binary(Data) ->
 	lists:all(fun(HashValue) ->
 		getBit(State, HashValue)
 	end, hash_bits(Width, Data, lists:seq(1, Rounds)));
