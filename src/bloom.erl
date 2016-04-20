@@ -78,3 +78,7 @@ setBits(Bin, [Offset |Rest]) ->
 		<<_:Offset/bits,1:1,_/bits>> -> setBits(Bin, Rest);
 		<<A:Offset/bits,0:1,B/bits>> -> setBits(<<A:Offset/bits,1:1,B/bits>>, Rest)
 	end.
+
+-ifdef(TEST).
+
+-endif.
