@@ -81,4 +81,14 @@ setBits(Bin, [Offset |Rest]) ->
 
 -ifdef(TEST).
 
+basic_test_() ->
+	{"Bloom Filter Tests", [
+		{"basic tests", [
+			{"Can simple create", ?_assertMatch(#bloom_state{}, new(100, 10))},
+			{"Can manual create", ?_assertMatch(#bloom_state{}, new_manual(128, 10))},
+			{"Can add", ?_assertMatch(#bloom_state{}, add(new_manual(128,10), cat))},
+			{"Can check", ?_assertNot(exists(new_manual(128,10), cat))}
+		]}
+	]}.
+
 -endif.
