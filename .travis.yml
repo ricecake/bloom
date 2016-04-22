@@ -1,7 +1,7 @@
 sudo:     false
 language: erlang
 install:  "true" # don't let travis run get-deps
-script:   "./rebar3 as test do xref, dialyzer, eunit"
+script:   "./rebar3 do xref, dialyzer, eunit"
 otp_release:
     - 18.2
 cache:
