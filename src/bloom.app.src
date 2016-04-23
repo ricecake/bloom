@@ -1,6 +1,6 @@
 {application, bloom,
- [{description, "An OTP library"},
-  {vsn, "0.1.0"},
+ [{description, "A Simple Bloom Filter"},
+  {vsn, "0.8.0"},
   {registered, []},
   {applications,
    [kernel,
