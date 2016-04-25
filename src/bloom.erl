@@ -6,9 +6,7 @@
 	new_manual/2,
 	add/2,
 	exists/2,
-	optimal_params/2,
-	setBits/2,
-	getBit/2
+	optimal_params/2
 ]).
 
 -define(BLOCK, 32).
