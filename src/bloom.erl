@@ -83,10 +83,11 @@ basic_test_() ->
 	{"Bloom Filter Tests", [
 		{"basic tests", [
 			{"Can simple create", ?_assertMatch(#bloom_state{}, new(100, 10))},
-			{"Can manual create", ?_assertMatch(#bloom_state{}, new_manual(128, 10))},
-			{"Can add", ?_assertMatch(#bloom_state{}, add(new_manual(128,10), cat))},
+			{"Can manual create", ?_assertMatch(#bloom_state{}, new_manual(1024, 3))},
+			{"Can add", ?_assertMatch(#bloom_state{}, add(new_manual(1024,3), cat))},
 			{"Can get optimal params", ?_assertMatch({ok, {_, _}}, optimal_params(100, 10))},
-			{"Can check", ?_assertNot(exists(new_manual(128,10), cat))}
+			{"Can check missing", ?_assertNot(exists(new_manual(1024,3), cat))},
+			{"Can check present", ?_assert(exists(add(new_manual(1024,3), cat), cat))}
 		]}
 	]}.
 
