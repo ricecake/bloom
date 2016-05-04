@@ -32,7 +32,7 @@ new_manual(Width, Rounds) when Width rem ?BLOCK == 0 ->
 
 optimal_params(Elements, Odds) ->
 	Probability = math:pow(Odds, -1),
-	%%                                v -1/( ln(2)^2 )
+	%% -1/( ln(2)^2 ) == -2.0813689810056077
 	Width = nearest_block_size(-2.0813689810056077 * ( Elements * math:log(Probability))),
 	Hashes = round((Width/Elements) * math:log(2)),
 	{ok, {Width, Hashes}}.
