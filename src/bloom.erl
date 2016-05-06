@@ -6,6 +6,7 @@
 	new_manual/2,
 	add/2,
 	exists/2,
+	union/2,
 	optimal_params/2
 ]).
 
@@ -51,6 +52,8 @@ exists(#bloom_state{ state=State, width=Width, rounds=Rounds}, Data) when is_bin
 exists(State, Data) when not is_binary(Data) ->
 	exists(State, term_to_binary(Data)).
 
+
+union(#bloom_state{}, #bloom_state{}) -> error.
 
 %%====================================================================
 %% Internal functions
