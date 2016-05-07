@@ -7,6 +7,8 @@
 	add/2,
 	exists/2,
 	union/2,
+	intersection/2,
+	difference/2,
 	optimal_params/2
 ]).
 
@@ -54,6 +56,10 @@ exists(State, Data) when not is_binary(Data) ->
 
 
 union(#bloom_state{}, #bloom_state{}) -> error.
+
+intersection(#bloom_state{}, #bloom_state{}) -> error.
+
+difference(#bloom_state{}, #bloom_state{}) -> error.
 
 %%====================================================================
 %% Internal functions
