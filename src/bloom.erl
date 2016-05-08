@@ -26,6 +26,9 @@
 %% API functions
 %%====================================================================
 
+-spec(pos_integer(), pos_integer())->{ok, tipple()}.
+
+
 new(Elements, Odds) ->
 	{ok, {Width, Hashes}} = optimal_params(Elements, Odds),
 	new_manual(Width, Hashes).
