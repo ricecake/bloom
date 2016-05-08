@@ -26,7 +26,7 @@
 %% API functions
 %%====================================================================
 
--spec new(Elements :: pos_integer(),  Odds :: pos_integer())->{ok, tupple()}.
+-spec new(Elements :: pos_integer(),  Odds :: pos_integer())->{ok, tuple()}.
 
 
 new(Elements, Odds) ->
