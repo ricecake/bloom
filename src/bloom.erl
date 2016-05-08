@@ -26,7 +26,7 @@
 %% API functions
 %%====================================================================
 
--spec new(Elements :: pos_integer(),  Odds :: pos_integer())->{ok, tuple()}.
+-spec new(Elements :: pos_integer(),  Odds :: pos_integer())->#bloom_state{state::binary(),width::pos_integer(), rounds :: pos_integer()}.
 
 
 new(Elements, Odds) ->
