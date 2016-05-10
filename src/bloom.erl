@@ -12,8 +12,12 @@
 	optimal_params/2
 ]).
 
+-export_type([bloom_state/0]).
+
 -define(BLOCK, 32).
 -record(bloom_state, {state :: binary(), width :: pos_integer(), rounds :: pos_integer()}).
+
+-opaque bloom_state() :: #bloom_state{state :: binary(), width :: pos_integer(), rounds :: pos_integer()}.
 
 -ifdef(TEST).
 
@@ -26,16 +30,22 @@
 %% API functions
 %%====================================================================
 
--spec new(Elements :: pos_integer(),  Odds :: pos_integer())->#bloom_state{state::binary(),width::pos_integer(), rounds :: pos_integer()}.
+-spec new(Elements :: pos_integer(),  Odds :: pos_integer()) -> bloom_state().
 
 
 new(Elements, Odds) ->
 	{ok, {Width, Hashes}} = optimal_params(Elements, Odds),
 	new_manual(Width, Hashes).
 
+
+-spec new_manual(Width :: pos_integer(), Rounds :: pos_integer()) -> bloom_state().
+
 new_manual(Width, Rounds) when Width rem ?BLOCK == 0 ->
 	#bloom_state{ state= <<0:Width>>, width=Width, rounds=Rounds}.
 
+
+-spec optimal_params(Elements :: pos_integer(), Odds :: pos_integer()) ->
+	{ok, {Width :: pos_integer(), Rounds :: pos_integer() }}.
 
 optimal_params(Elements, Odds) when Elements > 0, Odds > 0 ->
 	Probability = math:pow(Odds, -1),
