@@ -36,7 +36,8 @@ new(Elements, Odds) ->
 new_manual(Width, Rounds) when Width rem ?BLOCK == 0 ->
 	#bloom_state{ state= <<0:Width>>, width=Width, rounds=Rounds}.
 
-optimal_params(Elements, Odds) ->
+
+optimal_params(Elements, Odds) when Elements > 0, Odds > 0 ->
 	Probability = math:pow(Odds, -1),
 	%% -1/( ln(2)^2 ) == -2.0813689810056077
 	Width = nearest_block_size(-2.0813689810056077 * ( Elements * math:log(Probability))),
