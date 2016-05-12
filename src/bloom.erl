@@ -63,6 +63,8 @@ add(State, Data) when not is_binary(Data) ->
 	add(State, term_to_binary(Data)).
 
 
+-spec exists(Filter :: bloom_state(), Data :: term()) -> Exists :: boolean().
+
 exists(#bloom_state{ state=State, width=Width, rounds=Rounds}, Data) when is_binary(Data) ->
 	lists:all(fun(HashValue) ->
 		getBit(State, HashValue)
