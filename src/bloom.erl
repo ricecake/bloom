@@ -112,6 +112,7 @@ basic_test_() ->
 			{"Can simple create", ?_assertMatch(#bloom_state{width=480, rounds=3}, new(100, 10))},
 			{"Can manual create", ?_assertMatch(#bloom_state{width=1024, rounds=3}, new_manual(1024, 3))},
 			{"Can add", ?_assertMatch(#bloom_state{}, add(new_manual(1024,3), cat))},
+			{"Can binary add", ?_assertMatch(#bloom_state{}, add(new_manual(1024,3), <<"cat">>))},
 			{"Can double add", ?_assertMatch(#bloom_state{}, add(add(new_manual(1024,3), cat), cat))},
 			{"Can get optimal params", ?_assertMatch({ok, {_, _}}, optimal_params(100, 10))},
 			{"Can check missing", ?_assertNot(exists(new_manual(1024,3), cat))},
