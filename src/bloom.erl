@@ -56,7 +56,7 @@ optimal_params(Elements, Odds) when Elements > 0, Odds > 0 ->
 
 -spec add(Filter :: bloom_state(), Data:: term()) -> NewFilter :: bloom_state().
 
-add(#bloom_state{ state=State, width=Width, rounds=Rounds} = Bloom, Data) when is_binary(Data) ->
+add(#bloom_state{state=State, width=Width, rounds=Rounds} = Bloom, Data) when is_binary(Data) ->
 	NewState = setBits(State, hash_bits(Width, Data, lists:seq(1, Rounds))),
 	Bloom#bloom_state{ state=NewState };
 add(State, Data) when not is_binary(Data) ->
@@ -65,7 +65,7 @@ add(State, Data) when not is_binary(Data) ->
 
 -spec exists(Filter :: bloom_state(), Data :: term()) -> Exists :: boolean().
 
-exists(#bloom_state{ state=State, width=Width, rounds=Rounds}, Data) when is_binary(Data) ->
+exists(#bloom_state{state=State, width=Width, rounds=Rounds}, Data) when is_binary(Data) ->
 	lists:all(fun(HashValue) ->
 		getBit(State, HashValue)
 	end, hash_bits(Width, Data, lists:seq(1, Rounds)));
@@ -73,7 +73,10 @@ exists(State, Data) when not is_binary(Data) ->
 	exists(State, term_to_binary(Data)).
 
 
-union(#bloom_state{}, #bloom_state{}) -> error.
+-spec union(LeftFilter :: bloom_state(), RightFilter :: bloom_state()) -> UnionFilter :: bloom_state().
+
+union(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{state=RightState, width=Width, rounds=Rounds}) ->
+	#bloom_state{state=merge_binary(LeftState, RightState, <<>>), width=Width, rounds=Rounds}.
 
 intersection(#bloom_state{}, #bloom_state{}) -> error.
 
@@ -104,6 +107,10 @@ setBits(Bin, [Offset |Rest]) ->
 		<<A:Offset/bits,0:1,B/bits>> -> setBits(<<A:Offset/bits,1:1,B/bits>>, Rest)
 	end.
 
+merge_binary(<<LeftBlock:?BLOCK/integer>>, <<RightBlock:?BLOCK/integer>>, Acc) -> <<Acc/binary, (LeftBlock bor RightBlock):?BLOCK/integer>>;
+merge_binary(<<LeftBlock:?BLOCK/integer, LeftRest/binary>>, <<RightBlock:?BLOCK/integer, RightRest/binary>>, Acc) ->
+	merge_binary(LeftRest, RightRest, <<Acc/binary, (LeftBlock bor RightBlock):?BLOCK/integer>>).
+
 -ifdef(TEST).
 
 basic_test_() ->
@@ -122,6 +129,13 @@ basic_test_() ->
 				{"Can check missing", ?_assertNot(exists(new_manual(1024,3), cat))},
 				{"Can check present", ?_assert(exists(add(new_manual(1024,3), cat), cat))}
 			]},
+			{"union tests", setup, fun() -> {new_manual(1024,3), new_manual(1024,3)} end, fun({Left, Right})->[
+				{"can basic union", ?_assertMatch(#bloom_state{}, union(Left, Right))},
+				{"add left, exists", ?_assert(exists(union(add(Left, cat), Right), cat))},
+				{"add right, exists", ?_assert(exists(union(add(Right, dog), Left), dog))},
+				{"add both, left exists", ?_assert(exists(union(add(Left, cat), add(Right, dog)), cat))},
+				{"add both, right exists", ?_assert(exists(union(add(Left, cat), add(Right, dog)), dog))}
+			] end},
 			{"Can get optimal params", ?_assertMatch({ok, {_, _}}, optimal_params(100, 10))}
 		]}
 	]}.
