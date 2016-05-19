@@ -78,7 +78,8 @@ exists(State, Data) when not is_binary(Data) ->
 union(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{state=RightState, width=Width, rounds=Rounds}) ->
 	#bloom_state{state=merge_binary(LeftState, RightState, <<>>), width=Width, rounds=Rounds}.
 
-intersection(#bloom_state{}, #bloom_state{}) -> error.
+intersection(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{state=RightState, width=Width, rounds=Rounds}) ->
+	#bloom_state{state=intersect_binary(LeftState, RightState, <<>>), width=Width, rounds=Rounds}.
 
 difference(#bloom_state{}, #bloom_state{}) -> error.
 
@@ -110,6 +111,10 @@ setBits(Bin, [Offset |Rest]) ->
 merge_binary(<<LeftBlock:?BLOCK/integer>>, <<RightBlock:?BLOCK/integer>>, Acc) -> <<Acc/binary, (LeftBlock bor RightBlock):?BLOCK/integer>>;
 merge_binary(<<LeftBlock:?BLOCK/integer, LeftRest/binary>>, <<RightBlock:?BLOCK/integer, RightRest/binary>>, Acc) ->
 	merge_binary(LeftRest, RightRest, <<Acc/binary, (LeftBlock bor RightBlock):?BLOCK/integer>>).
+
+intersect_binary(<<LeftBlock:?BLOCK/integer>>, <<RightBlock:?BLOCK/integer>>, Acc) -> <<Acc/binary, (LeftBlock band RightBlock):?BLOCK/integer>>;
+intersect_binary(<<LeftBlock:?BLOCK/integer, LeftRest/binary>>, <<RightBlock:?BLOCK/integer, RightRest/binary>>, Acc) ->
+	intersect_binary(LeftRest, RightRest, <<Acc/binary, (LeftBlock band RightBlock):?BLOCK/integer>>).
 
 -ifdef(TEST).
 
