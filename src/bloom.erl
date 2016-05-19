@@ -81,7 +81,8 @@ union(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{st
 intersection(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{state=RightState, width=Width, rounds=Rounds}) ->
 	#bloom_state{state=intersect_binary(LeftState, RightState, <<>>), width=Width, rounds=Rounds}.
 
-difference(#bloom_state{}, #bloom_state{}) -> error.
+difference(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{state=RightState, width=Width, rounds=Rounds}) ->
+	#bloom_state{state=diff_binary(LeftState, RightState, <<>>), width=Width, rounds=Rounds}.
 
 %%====================================================================
 %% Internal functions
@@ -116,11 +117,17 @@ intersect_binary(<<LeftBlock:?BLOCK/integer>>, <<RightBlock:?BLOCK/integer>>, Ac
 intersect_binary(<<LeftBlock:?BLOCK/integer, LeftRest/binary>>, <<RightBlock:?BLOCK/integer, RightRest/binary>>, Acc) ->
 	intersect_binary(LeftRest, RightRest, <<Acc/binary, (LeftBlock band RightBlock):?BLOCK/integer>>).
 
+diff_binary(<<LeftBlock:?BLOCK/integer>>, <<RightBlock:?BLOCK/integer>>, Acc) -> <<Acc/binary, (LeftBlock bxor RightBlock):?BLOCK/integer>>;
+diff_binary(<<LeftBlock:?BLOCK/integer, LeftRest/binary>>, <<RightBlock:?BLOCK/integer, RightRest/binary>>, Acc) ->
+	diff_binary(LeftRest, RightRest, <<Acc/binary, (LeftBlock bxor RightBlock):?BLOCK/integer>>).
+
+
 -ifdef(TEST).
 
 basic_test_() ->
 	{"Bloom Filter Tests", [
 		{"basic tests", [
+			{"Can get optimal params", ?_assertMatch({ok, {_, _}}, optimal_params(100, 10))},
 			{"create tests", [
 				{"Can simple create", ?_assertMatch(#bloom_state{width=480, rounds=3}, new(100, 10))},
 				{"Can manual create", ?_assertMatch(#bloom_state{width=1024, rounds=3}, new_manual(1024, 3))}
@@ -134,14 +141,32 @@ basic_test_() ->
 				{"Can check missing", ?_assertNot(exists(new_manual(1024,3), cat))},
 				{"Can check present", ?_assert(exists(add(new_manual(1024,3), cat), cat))}
 			]},
-			{"union tests", setup, fun() -> {new_manual(1024,3), new_manual(1024,3)} end, fun({Left, Right})->[
-				{"can basic union", ?_assertMatch(#bloom_state{}, union(Left, Right))},
-				{"add left, exists", ?_assert(exists(union(add(Left, cat), Right), cat))},
-				{"add right, exists", ?_assert(exists(union(add(Right, dog), Left), dog))},
-				{"add both, left exists", ?_assert(exists(union(add(Left, cat), add(Right, dog)), cat))},
-				{"add both, right exists", ?_assert(exists(union(add(Left, cat), add(Right, dog)), dog))}
-			] end},
-			{"Can get optimal params", ?_assertMatch({ok, {_, _}}, optimal_params(100, 10))}
+			{"Multifilter tests", setup, fun() -> {new_manual(1024,3), new_manual(1024,3)} end, fun({Left, Right})->[
+				{"union tests", [
+					{"can basic union", ?_assertMatch(#bloom_state{}, union(Left, Right))},
+					{"add left, exists", ?_assert(exists(union(add(Left, cat), Right), cat))},
+					{"add right, exists", ?_assert(exists(union(add(Right, dog), Left), dog))},
+					{"add both, left exists", ?_assert(exists(union(add(Left, cat), add(Right, dog)), cat))},
+					{"add both, right exists", ?_assert(exists(union(add(Left, cat), add(Right, dog)), dog))},
+					{"add same both and exists", ?_assert(exists(intersection(add(Left, cat), add(Right, cat)), cat))}
+				]},
+				{"intersect tests", [
+					{"can basic intersection", ?_assertMatch(#bloom_state{}, intersection(Left, Right))},
+					{"add left, not exists", ?_assertNot(exists(intersection(add(Left, cat), Right), cat))},
+					{"add right, not exists", ?_assertNot(exists(intersection(add(Right, dog), Left), dog))},
+					{"add both, left not exists", ?_assertNot(exists(intersection(add(Left, cat), add(Right, dog)), cat))},
+					{"add both, right not exists", ?_assertNot(exists(intersection(add(Left, cat), add(Right, dog)), dog))},
+					{"add same both and exists", ?_assert(exists(intersection(add(Left, cat), add(Right, cat)), cat))}
+				]},
+				{"difference tests", [
+					{"can basic difference", ?_assertMatch(#bloom_state{}, difference(Left, Right))},
+					{"add left and exists", ?_assert(exists(difference(add(Left, cat), Right), cat))},
+					{"add right and exists", ?_assert(exists(difference(add(Right, dog), Left), dog))},
+					{"add both, left exists", ?_assert(exists(difference(add(Left, cat), add(Right, dog)), cat))},
+					{"add both, right exists", ?_assert(exists(difference(add(Left, cat), add(Right, dog)), dog))},
+					{"add same both not exists", ?_assertNot(exists(difference(add(Left, cat), add(Right, cat)), cat))}
+				]}
+			] end}
 		]}
 	]}.
 
