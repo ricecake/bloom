@@ -78,8 +78,14 @@ exists(State, Data) when not is_binary(Data) ->
 union(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{state=RightState, width=Width, rounds=Rounds}) ->
 	#bloom_state{state=merge_binary(LeftState, RightState, <<>>), width=Width, rounds=Rounds}.
 
+
+-spec intersection(LeftFilter :: bloom_state(), RightFilter :: bloom_state()) -> IntersectionFilter :: bloom_state().
+
 intersection(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{state=RightState, width=Width, rounds=Rounds}) ->
 	#bloom_state{state=intersect_binary(LeftState, RightState, <<>>), width=Width, rounds=Rounds}.
+
+
+-spec difference(LeftFilter :: bloom_state(), RightFilter :: bloom_state()) -> DifferenceFilter :: bloom_state().
 
 difference(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{state=RightState, width=Width, rounds=Rounds}) ->
 	#bloom_state{state=diff_binary(LeftState, RightState, <<>>), width=Width, rounds=Rounds}.
