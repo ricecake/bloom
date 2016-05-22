@@ -30,6 +30,8 @@
 %% API functions
 %%====================================================================
 
+%@doc Returns a new bloom filter, given the approximate number of elements, and the desired conflict resilience. 
+
 -spec new(Elements :: pos_integer(),  Odds :: pos_integer()) -> bloom_state().
 
 
