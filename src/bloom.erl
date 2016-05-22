@@ -39,6 +39,7 @@ new(Elements, Odds) ->
 	{ok, {Width, Hashes}} = optimal_params(Elements, Odds),
 	new_manual(Width, Hashes).
 
+%@doc Returns a new bloom filter, with manually specified bit width and hash count.
 
 -spec new_manual(Width :: pos_integer(), Rounds :: pos_integer()) -> bloom_state().
 
