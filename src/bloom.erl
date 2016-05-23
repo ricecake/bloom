@@ -59,6 +59,12 @@ optimal_params(Elements, Odds) when Elements > 0, Odds > 0 ->
 	Hashes = round((Width/Elements) * math:log(2)),
 	{ok, {Width, Hashes}}.
 
+%@doc Adds a new element to the filter
+%
+% If the item is not a binary, it will be converted using term to binary
+%
+%@end
+
 -spec add(Filter :: bloom_state(), Data:: term()) -> NewFilter :: bloom_state().
 
 add(#bloom_state{state=State, width=Width, rounds=Rounds} = Bloom, Data) when is_binary(Data) ->
