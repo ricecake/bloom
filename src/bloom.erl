@@ -47,6 +47,8 @@ new_manual(Width, Rounds) when Width rem ?BLOCK == 0 ->
 	#bloom_state{ state= <<0:Width>>, width=Width, rounds=Rounds}.
 
 
+%@doc Given an estimate of the number of elements in the filter, and the conflict resilience, returns the optimal bit width and hash count
+
 -spec optimal_params(Elements :: pos_integer(), Odds :: pos_integer()) ->
 	{ok, {Width :: pos_integer(), Rounds :: pos_integer() }}.
 
