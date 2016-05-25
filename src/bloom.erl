@@ -74,6 +74,12 @@ add(State, Data) when not is_binary(Data) ->
 	add(State, term_to_binary(Data)).
 
 
+%@doc Checks for the existence of an element in the filter.
+%
+% Will convert non-binary terms into binary useing term_to_binary
+%
+%@end
+
 -spec exists(Filter :: bloom_state(), Data :: term()) -> Exists :: boolean().
 
 exists(#bloom_state{state=State, width=Width, rounds=Rounds}, Data) when is_binary(Data) ->
