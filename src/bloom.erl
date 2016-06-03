@@ -90,17 +90,23 @@ exists(State, Data) when not is_binary(Data) ->
 	exists(State, term_to_binary(Data)).
 
 
+%@doc Calculates the union of two bloom filters
+
 -spec union(LeftFilter :: bloom_state(), RightFilter :: bloom_state()) -> UnionFilter :: bloom_state().
 
 union(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{state=RightState, width=Width, rounds=Rounds}) ->
 	#bloom_state{state=merge_binary(LeftState, RightState, <<>>), width=Width, rounds=Rounds}.
 
 
+%@doc Caluculates the intersection of two bloom filters
+
 -spec intersection(LeftFilter :: bloom_state(), RightFilter :: bloom_state()) -> IntersectionFilter :: bloom_state().
 
 intersection(#bloom_state{state=LeftState, width=Width, rounds=Rounds}, #bloom_state{state=RightState, width=Width, rounds=Rounds}) ->
 	#bloom_state{state=intersect_binary(LeftState, RightState, <<>>), width=Width, rounds=Rounds}.
 
+
+%@doc Calculates the difference of two bloom filters
 
 -spec difference(LeftFilter :: bloom_state(), RightFilter :: bloom_state()) -> DifferenceFilter :: bloom_state().
 
