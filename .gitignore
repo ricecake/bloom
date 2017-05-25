@@ -6,10 +6,4 @@ _*
 *.plt
 *.swp
 *.swo
-.erlang.cookie
-ebin
-log
 erl_crash.dump
-.rebar
-logs
-_build
